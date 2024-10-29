@@ -1,6 +1,6 @@
 name: 'Deploy Flutter web app to github pages'
 description: 'Automates the build and deployment of your Flutter web app on Github gh pages'
-author: 'bluefireteam'
+author: 'Marc-R2'
 
 branding:
   color: blue
@@ -8,14 +8,19 @@ branding:
 
 inputs:
   webRenderer:
-    description: 'Which web renderer to be used, default is auto'
+    description: 'Which web renderer to be used, default is canvaskit (canvaskit/skwasm)'
     required: false
-    default: auto
+    default: canvaskit
+  enableWasm:
+    description: 'Enable WebAssembly (default false) - ignores the webRenderer option'
+    required: false
+    default: "false"
   workingDir:
     description: 'The directory where the project is (default .)'
     required: false
     default: .
   targetBranch:
+    description: 'The branch where the build will be pushed'
     required: false
     default: gh-pages
   baseHref:
@@ -33,7 +38,12 @@ runs:
     - run: flutter config --enable-web
       shell: bash
       working-directory: ${{inputs.workingDir}}
-    - run: flutter build web --release --web-renderer=${{inputs.webRenderer}} --base-href ${{inputs.baseHref}} ${{inputs.customArgs}}
+    - run: |
+        if [ "${{inputs.enableWasm}}" == "true" ]; then
+          flutter build web --release --wasm --base-href ${{inputs.baseHref}} ${{inputs.customArgs}}
+        else
+          flutter build web --release --web-renderer=${{inputs.webRenderer}} --base-href ${{inputs.baseHref}} ${{inputs.customArgs}}
+        fi
       shell: bash
       working-directory: ${{inputs.workingDir}}
     - run: git config user.name github-actions
